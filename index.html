@@ -394,6 +394,7 @@
       characterList.innerHTML = '';
       characters
         .filter(char => char.name.toLowerCase().includes(query))
+        .sort((a, b) => a.name.localeCompare(b.name))
         .forEach(char => {
           const listItem = document.createElement('div');
           listItem.classList.add('character-list-item');
