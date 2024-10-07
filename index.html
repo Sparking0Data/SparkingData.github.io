@@ -17,12 +17,6 @@
       background-color: #3a3a3a; /* Change background color here */
     }
 
-    #pageTitle {
-      text-align: center;
-      color: white;
-      margin-bottom: 20px;
-    }
-
     .team-container {
       text-align: center;
       margin: 20px;
@@ -71,6 +65,13 @@
       color: white;
     }
 
+    .page-title {
+      margin-bottom: 20px;
+      font-size: 4em;
+      color: white;
+    }
+
+
     /* Error message style */
     .error-message {
       color: red;
@@ -104,10 +105,8 @@
   </style>
 </head>
 <body>
-
-  <h1 id="pageTitle">Team Calculator</h1><br>
-
   <div class="team-container">
+    <div id="pageTitle" class="page-title">Team Calculator</div>
     <div id="totalCost" class="total-cost">Total Cost: 0</div>
     <div id="errorMessage" class="error-message">Total cost cannot exceed 15!</div>
     <div id="team"></div>
