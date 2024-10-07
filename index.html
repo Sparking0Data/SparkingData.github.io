@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Builder</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      height: 100vh;
+      margin: 0;
+      padding-top: 20px;
+      overflow: hidden;
+      font-family: 'Impact', 'Arial', sans-serif;
+    }
+
+    .team-container {
+      text-align: center;
+      margin: 20px;
+      position: relative;
+      max-height: calc(100vh - 60px);
+      overflow-y: auto;
+    }
+
+    .character-container {
+      display: inline-block;
+      background-color: #3a3a3a;
+      margin-right: 10px;
+      margin-bottom: 20px;
+    }
+
+    .character-btn, .character-img {
+      width: 200px;
+      height: 150px;
+      overflow: hidden;
+      text-align: center;
+      color: white;
+      background-color: #3a3a3a;
+      padding: 10px;
+      white-space: normal;
+      word-wrap: break-word;
+      margin-bottom: 10px;
+    }
+
+    .character-img {
+      background-color: #3a3a3a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .delete-btn {
+      display: block;
+      margin-top: 5px;
+      width: 220px;
+    }
+
+    .total-cost {
+      margin-bottom: 20px;
+      font-size: 2em;
+      color: white;
+    }
+
+    /* Error message style */
+    .error-message {
+      color: red;
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      display: none; /* Hidden by default */
+    }
+
+    /* Style for character selection modal */
+    #characterSelectModal {
+      position: absolute;
+      background-color: white;
+      border: 1px solid #ccc;
+      padding: 10px;
+      display: none;
+    }
+
+    /* Search input styling */
+    #characterSearch {
+      margin-bottom: 10px;
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+
+    /* Character list styling */
+    .character-list-item {
+      margin: 5px 0;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="team-container">
+    <div id="totalCost" class="total-cost">Total Cost: 0</div>
+    <div id="errorMessage" class="error-message">Total cost cannot exceed 15!</div>
+    <div id="team"></div>
+    <button id="addCharacterBtn">Add Character</button>
+    <button id="shareTeamBtn">Share Team</button>
+  </div>
+
+  <!-- Character selection modal -->
+  <div id="characterSelectModal">
+    <input type="text" id="characterSearch" placeholder="Search character...">
+    <div id="characterList"></div>
+  </div>
+
+  <script>
+    const maxTeamSize = 5;
+    const maxTotalCost = 15;
+    let team = [];
+    let totalCost = 0;
+
+    const characters = [
+      { name: 'Goku (Z-Early) [4]', cost: 4, abilities: ['Kamehameha', 'Instant Transmission', 'Spirit Bomb', 'Kaioken'], image: 'https://media.graphassets.com/saQPTCeXRvSD7GeoAa1v' },
+      { name: 'Goku (Z-Mid) [5]', cost: 5, abilities: ['Kamehameha', 'Instant Transmission', 'Spirit Bomb', 'Kaioken'], image: 'https://media.graphassets.com/qb5EFsSTAaQWKhXWCCJy' },
+      { name: 'Goku (Z-Mid) SSJ1 [6]', cost: 6, abilities: ['Kamehameha', 'Instant Transmission', 'Spirit Bomb', 'Kaioken'], image: 'https://media.graphassets.com/RMkc1VaRCaideLib3PZm' },
+      { name: 'Goku (Z-End) [5]', cost: 5, abilities: ['Kamehameha', 'Instant Transmission', 'Spirit Bomb', 'Kaioken'], image: 'https://media.graphassets.com/uxAbcO0dQ3mOzRieB89G' },
+      { name: 'Goku (Z-End) SSJ1 [6]', cost: 6, abilities: ['Kamehameha', 'Instant Transmission', 'Spirit Bomb', 'Kaioken'], image: 'https://media.graphassets.com/ol0REKtTTemChXwiwhQt' },
+      { name: 'Goku (Z-End) SSJ2 [7]', cost: 7, abilities: ['Kamehameha', 'Instant Transmission', 'Spirit Bomb', 'Kaioken'], image: 'https://media.graphassets.com/zu6LDhKDRUmHbODQXgMV' },
+      { name: 'Goku (Z-End) SSJ3 [8]', cost: 8, abilities: ['Kamehameha', 'Instant Transmission', 'Spirit Bomb', 'Kaioken'], image: 'https://media.graphassets.com/bH6gCLlzT4u2nX6hr612' },
+      { name: 'Goku (Super) [5]', cost: 5, abilities: ['Kamehameha', 'Instant Transmission', 'Spirit Bomb', 'Kaioken'], image: 'https://media.graphassets.com/qe9wv9IVQJ6ThVFYMbXz' },
+      { name: 'Goku (Super) SSJ1 [6]', cost: 6, abilities: ['Kamehameha', 'Instant Transmission', 'Spirit Bomb', 'Kaioken'], image: 'https://media.graphassets.com/SjQwbvPNQCIVvBXJv2rE' },
+      { name: 'Goku (Super) SSJG [7]', cost: 7, abilities: ['Kamehameha', 'Instant Transmission', 'Spirit Bomb', 'Kaioken'], image: 'https://media.graphassets.com/zeCh6lwlSIO2F8daL75S' },
+      { name: 'Goku (Super) SSJB [8]', cost: 8, abilities: ['Kamehameha', 'Instant Transmission', 'Spirit Bomb', 'Kaioken'], image: 'https://media.graphassets.com/UlDd60UQCSRUgVkehz36' },
+      { name: 'Vegeta (Scouter) [4]', cost: 4, abilities: ['Final Flash', 'Big Bang Attack', 'Galick Gun', 'Saiyan Pride'], image: 'https://media.graphassets.com/SOFlBAogRpScTEQJBrr2' }
+    ];
+
+    const addCharacterBtn = document.getElementById('addCharacterBtn');
+    const shareTeamBtn = document.getElementById('shareTeamBtn');
+    const teamContainer = document.getElementById('team');
+    const totalCostDisplay = document.getElementById('totalCost');
+    const errorMessage = document.getElementById('errorMessage');
+    const characterSelectModal = document.getElementById('characterSelectModal');
+    const characterSearch = document.getElementById('characterSearch');
+    const characterList = document.getElementById('characterList');
+
+    // Initialize the team from URL
+    loadTeamFromURL();
+
+    // Show modal and populate character list
+    addCharacterBtn.addEventListener('click', () => {
+      characterSearch.value = ''; // Clear the search field
+      filterCharacterList('');    // Show all characters initially
+      setModalNextToLastButton(); // Position modal
+      characterSelectModal.style.display = 'block';
+    });
+
+    // Function to position modal next to the last character button
+    function setModalNextToLastButton() {
+      const charContainers = document.querySelectorAll('.character-container');
+      if (charContainers.length > 0) {
+        const lastCharContainer = charContainers[charContainers.length - 1];
+        const lastButtonRect = lastCharContainer.getBoundingClientRect();
+        const modalX = lastButtonRect.right + 10;
+        const modalY = lastButtonRect.top;
+        characterSelectModal.style.left = modalX + 'px';
+        characterSelectModal.style.top = modalY + 'px';
+      } else {
+        const addButtonRect = addCharacterBtn.getBoundingClientRect();
+        const modalX = addButtonRect.right + 10;
+        const modalY = addButtonRect.top;
+        characterSelectModal.style.left = modalX + 'px';
+        characterSelectModal.style.top = modalY + 'px';
+      }
+    }
+
+    characterSearch.addEventListener('input', () => {
+      const query = characterSearch.value.toLowerCase();
+      filterCharacterList(query);
+    });
+
+    shareTeamBtn.addEventListener('click', () => {
+      const shareLink = generateShareLink();
+      navigator.clipboard.writeText(shareLink)
+         .then(() => {
+             alert("Team link copied to clipboard!");
+         })
+         .catch(err => {
+             alert("Failed to copy the link.");
+         });
+    });
+
+    // Function to filter and display characters
+    function filterCharacterList(query) {
+      characterList.innerHTML = '';
+      characters
+        .filter(char => char.name.toLowerCase().includes(query))
+        .forEach(char => {
+          const listItem = document.createElement('div');
+          listItem.classList.add('character-list-item');
+          listItem.textContent = char.name;
+          listItem.addEventListener('click', () => selectCharacter(char));
+          characterList.appendChild(listItem);
+        });
+    }
+
+    // Function to handle character selection
+    function selectCharacter(selectedChar) {
+      if (totalCost + selectedChar.cost > maxTotalCost) {
+        errorMessage.style.display = 'block';
+        return;
+      }
+
+      errorMessage.style.display = 'none';
+      if (team.length < maxTeamSize) {
+        team.push(selectedChar);
+        totalCost += selectedChar.cost;
+        totalCostDisplay.textContent = `Total Cost: ${totalCost}`;
+
+        const charContainer = document.createElement('div');
+        charContainer.classList.add('character-container');
+
+        const charImage = document.createElement('div');
+        charImage.classList.add('character-img');
+        const imgElement = document.createElement('img');
+        imgElement.src = selectedChar.image;
+        imgElement.alt = selectedChar.name;
+        imgElement.style.width = '100%';
+        imgElement.style.height = '100%';
+        charImage.appendChild(imgElement);
+
+        const charButton = document.createElement('button');
+        charButton.classList.add('character-btn');
+        const charName = selectedChar.name.replace(/\s\[[0-9]+\]/, '');
+        charButton.innerHTML = `
+          <strong>${charName}</strong><br>
+          Cost: ${selectedChar.cost}<br>
+          <br><!--
+          <strong>Abilities:</strong><br>
+          ${selectedChar.abilities.map(ability => ability).join('<br>')} -->
+        `;
+
+        
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.classList.add('delete-btn');
+        deleteButton.addEventListener('click', () => {
+          team = team.filter(member => member.name !== selectedChar.name);
+          totalCost -= selectedChar.cost;
+          totalCostDisplay.textContent = `Total Cost: ${totalCost}`;
+          teamContainer.removeChild(charContainer);
+          addCharacterBtn.disabled = false;
+          updateURLWithTeam();
+        });
+
+        charContainer.appendChild(charImage);
+        charContainer.appendChild(charButton);
+        charContainer.appendChild(deleteButton);
+        teamContainer.appendChild(charContainer);
+        characterSelectModal.style.display = 'none';
+
+        if (team.length === maxTeamSize || totalCost === maxTotalCost) {
+          addCharacterBtn.disabled = true;
+        }
+        
+        updateURLWithTeam();
+      }
+    }
+
+    function generateShareLink() {
+      const baseUrl = window.location.origin + window.location.pathname;
+      const teamQuery = team.map(member => `${encodeURIComponent(member.name)}|${member.cost}`).join(',');
+      return `${baseUrl}?team=${teamQuery}`;
+    }
+
+    function updateURLWithTeam() {
+      const newUrl = generateShareLink();
+      window.history.replaceState({}, '', newUrl);
+    }
+
+    function loadTeamFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const teamQuery = urlParams.get('team');
+      if (teamQuery) {
+        const teamData = teamQuery.split(',').map(item => {
+          const [name, cost] = item.split('|');
+          return { name: decodeURIComponent(name), cost: parseInt(cost) };
+        });
+
+        teamData.forEach(member => {
+          const character = characters.find(char => char.name === member.name);
+          if (character) {
+            selectCharacter(character);
+          }
+        });
+      }
+    }
+  </script>
+</body>
+</html>
